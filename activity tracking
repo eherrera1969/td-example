@@ -1,1 +1,60 @@
+import os
+import tdclient
+import urllib3
+import certifi
 
+def check_db(db):
+	db_exists=0
+	for db in client.databases():
+		for table in db.tables():
+			if db_name==table.db_name:
+				db_exists=1
+#			if table_name==table.table_name:
+#				table_exists=1
+#	if table_exists==0:print("table does not exists")
+	if db_exists==0:print("database does NOT exist")
+	return(db_exists);
+
+def check_table(table_x):
+	table_exists=0
+	for db in client.databases():
+		for table in db.tables():
+#			if db_name==table.db_name:
+#				db_exists=1
+			if table_x==table.table_name:
+				table_exists=1
+				return(table_exists);
+	if table_exists==0:print("table does not exists")
+	return(table_exists);
+	
+# You're ready to make verified HTTPS requests.
+#    r = http.request('GET', 'https://example.com/')
+#except urllib3.exceptions.SSLError as e:
+
+http = urllib3.PoolManager(
+    cert_reqs='CERT_REQUIRED', # Force certificate check.
+    ca_certs=certifi.where(),  # Path to the Certifi bundle.
+)
+
+#apikey = os.getenv("TD_API_KEY")
+apikey = "7056/7c18b62e9d280b5afb89c30e5a7f4b5118c1818c"
+with tdclient.Client(apikey) as client:
+	db_exists=0
+	while (db_exists==0):
+		db_name = input("Database please: ")
+		db_exists=check_db(db_name)
+
+	table_exists=0
+	while (table_exists==0):
+		table_name = input("Table please: ")
+		table_exists=check_table(table_name)
+
+column = input("Column please: ")
+
+
+job = client.query(db_name, "SELECT "+column+" FROM "+table_name) 
+
+# sleep until job's finish
+job.wait()
+for row in job.result():
+	print(row)
